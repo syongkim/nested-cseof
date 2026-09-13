@@ -1,0 +1,27 @@
+This archive is a Python implementation of the nested CSEOF operator
+recorded in:
+
+  Kim, S. Y., Cautionary Remarks on Nested Cyclostationary Empirical
+  Orthogonal Function Analysis, J. Atmos. Oceanic Technol., submitted.
+
+It is not the FORTRAN of K.-Y. Kim, not the MATLAB of B. D. Hamlington,
+and not an official port of either. Those originals are not included
+and are not redistributed.
+
+The nested sequence (ordinary EOF, modified-sinc demodulation at k/T,
+packed coefficients, second EOF, harmonic synthesis onto a nested
+calendar) is described in the published CSEOF literature, including
+Kim and Wu (1999) and applications that execute the distributed nested
+code. Mathematical methods are not copyrighted. This repository claims
+copyright only in the new Python expression (MIT License).
+
+Discrete samples of the weighting window follow the 2010 MATLAB
+weight.m as recorded in the paper, including the lag grid of that
+file. The FORTRAN WEIGHT routine of cseofx.f uses a different lag
+grid. Filter centers remain k/T. Packed-coefficient energy and
+reconstruction rmse in the paper are for the MATLAB window. This
+archive is written to match that MATLAB operator, not to replace it
+with the FORTRAN window.
+
+Do not cite this software as Kim and North (1996, 1997) cyclostationary
+covariance eigenanalysis. That writing is a different matrix.

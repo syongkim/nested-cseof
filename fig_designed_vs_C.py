@@ -12,6 +12,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from jtech_palette import label_panels  # noqa: E402
 
 from nested_cseof import (  # noqa: E402
@@ -70,12 +71,17 @@ def white_field(rng: np.random.Generator) -> np.ndarray:
     return D - D.mean(axis=1, keepdims=True)
 
 
-def pmesh(ax, Z, **kw):
+def pmesh(ax, Z, *, normalize: bool = True, **kw):
+    Z = np.asarray(Z, dtype=float)
+    if normalize:
+        Z = Z / (np.max(np.abs(Z)) + 1e-12)
+    kw.setdefault("cmap", "RdBu_r")
+    kw.setdefault("vmin", -1.0)
+    kw.setdefault("vmax", 1.0)
     im = ax.pcolormesh(
         np.arange(1, ICYC + 1),
         np.arange(NSPACE),
         Z,
-        cmap="gray",
         shading="auto",
         **kw,
     )
@@ -128,10 +134,20 @@ def fig_nested_vs_C(D: np.ndarray, B_true: np.ndarray, a: np.ndarray) -> tuple[P
     t_year = np.arange(NTIME) / 12.0
     n_years = C["n_years"]
     t_year_C = 0.5 + np.arange(n_years)
-    fig, ax = plt.subplots(2, 2, figsize=(8.8, 6.4))
-    pmesh(ax[0, 0], B_true)
+    fig = plt.figure(figsize=(9.4, 6.5), constrained_layout=True)
+    gs = fig.add_gridspec(2, 3, width_ratios=[1.0, 1.0, 0.045])
+    ax = np.empty((2, 2), dtype=object)
+    ax[0, 0] = fig.add_subplot(gs[0, 0])
+    ax[0, 1] = fig.add_subplot(gs[0, 1])
+    ax[1, 0] = fig.add_subplot(gs[1, 0])
+    ax[1, 1] = fig.add_subplot(gs[1, 1])
+    cax = fig.add_subplot(gs[:, 2])
+    im = pmesh(ax[0, 0], B_true)
     pmesh(ax[0, 1], B_C)
     pmesh(ax[1, 0], B_N)
+    cbar = fig.colorbar(im, cax=cax)
+    cbar.set_ticks([-1.0, -0.5, 0.0, 0.5, 1.0])
+    cbar.set_label("Normalized amplitude")
     sl = slice(0, 96)
     ax[1, 1].plot(t_year[sl], a[sl], color=CLR[0], lw=1.4, label=r"generating $a(t)$")
     ax[1, 1].plot(
@@ -154,14 +170,13 @@ def fig_nested_vs_C(D: np.ndarray, B_true: np.ndarray, a: np.ndarray) -> tuple[P
     ax[1, 1].set_xlabel("Time (year)")
     ax[1, 1].set_ylabel("Amplitude")
     ax[1, 1].legend(fontsize=7)
-    fig.tight_layout()
     label_panels(
         ax,
         titles=[
-            "Generating $B(x,h)$",
-            r"Leading eigenvector of $C$",
+            r"Generating $B(x,h)$",
+            r"Leading evec of $C$ (anomaly)",
             "Nested CSEOF Bloch",
-            r"Amplitudes, first 8 yr",
+            r"$a(t)$; scaled coefficients",
         ],
     )
     path = savefig(fig, "17_nested_vs_C")
@@ -171,25 +186,38 @@ def fig_nested_vs_C(D: np.ndarray, B_true: np.ndarray, a: np.ndarray) -> tuple[P
 def fig_white_and_season(Dw: np.ndarray, Ds: np.ndarray) -> Path:
     nest_w = nested_two_stage(Dw, nkeep=NKEEP, icyc=ICYC)
     nest_s = nested_two_stage(Ds, nkeep=NKEEP, icyc=ICYC)
+    B_true = generating_B()
+    spatial_s = align_sign(nest_s["spatial"], B_true)
+    pc_s = nest_s["pcs"][:, 0]
+    if pattern_corr(nest_s["spatial"], B_true) < 0:
+        pc_s = -pc_s
     lam_w = nest_w["lam"]
     lam_s = nest_s["lam"]
     t_year = np.arange(NTIME) / 12.0
-    fig, ax = plt.subplots(2, 3, figsize=(9.6, 5.8))
+    fig = plt.figure(figsize=(10.8, 5.9), constrained_layout=True)
+    gs = fig.add_gridspec(2, 4, width_ratios=[1.0, 1.0, 1.0, 0.045])
+    ax = np.empty((2, 3), dtype=object)
+    for i in range(2):
+        for j in range(3):
+            ax[i, j] = fig.add_subplot(gs[i, j])
+    cax_w = fig.add_subplot(gs[0, 3])
+    cax_s = fig.add_subplot(gs[1, 3])
     ax[0, 0].plot(lam_w[:NKEEP] / lam_w.sum() * 100, "o-", color=CLR[0], ms=4)
     ax[0, 0].set_xlabel("EOF mode")
     ax[0, 0].set_ylabel("% variance")
     ax[0, 1].plot(t_year, nest_w["pcs"][:, 0], color=CLR[2], lw=0.8)
     ax[0, 1].set_xlabel("Time (year)")
     ax[0, 1].set_ylabel("CSEOF PC1")
-    pmesh(ax[0, 2], nest_w["spatial"])
+    im_w = pmesh(ax[0, 2], nest_w["spatial"])
+    fig.colorbar(im_w, cax=cax_w)
     ax[1, 0].plot(lam_s[:NKEEP] / lam_s.sum() * 100, "o-", color=CLR[0], ms=4)
     ax[1, 0].set_xlabel("EOF mode")
     ax[1, 0].set_ylabel("% variance")
-    ax[1, 1].plot(t_year, nest_s["pcs"][:, 0], color=CLR[2], lw=0.8)
+    ax[1, 1].plot(t_year, pc_s, color=CLR[2], lw=0.8)
     ax[1, 1].set_xlabel("Time (year)")
     ax[1, 1].set_ylabel("CSEOF PC1")
-    pmesh(ax[1, 2], nest_s["spatial"])
-    fig.tight_layout()
+    im_s = pmesh(ax[1, 2], spatial_s)
+    fig.colorbar(im_s, cax=cax_s)
     label_panels(
         ax,
         titles=[

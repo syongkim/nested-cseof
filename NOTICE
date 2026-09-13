@@ -11,8 +11,8 @@ and are not redistributed.
 The nested sequence (ordinary EOF, modified-sinc demodulation at k/T,
 packed coefficients, second EOF, harmonic synthesis onto a nested
 calendar) is described in the published CSEOF literature, including
-Kim and Wu (1999) and applications that execute the distributed nested
-code. Mathematical methods are not copyrighted. This repository claims
+the nested sequence executed in published applications, including
+Kim and Wu (1999). Mathematical methods are not copyrighted. This repository claims
 copyright only in the new Python expression (MIT License).
 
 Discrete samples of the weighting window follow the 2010 MATLAB

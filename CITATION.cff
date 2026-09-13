@@ -1,19 +1,22 @@
 cff-version: 1.2.0
 message: "Cite this software and the accompanying paper."
-title: "Nested CSEOF operator as distributed"
+title: "Nested CSEOF Python (this paper)"
 authors:
   - family-names: Kim
     given-names: Sung Yong
     affiliation: "Korea Advanced Institute of Science and Technology"
-version: "1.0.0"
+version: "1.1.0"
 license: MIT
 repository-code: "https://github.com/syongkim/nested-cseof"
-# doi: 10.5281/zenodo.XXXXXXX   # version DOI of the first Zenodo harvest
+identifiers:
+  - description: "All versions (concept DOI)"
+    type: doi
+    value: 10.5281/zenodo.22735764
 abstract: >-
-  Python implementation of the nested cyclostationary EOF operator recorded
-  in Kim (J. Atmos. Oceanic Technol., submitted). Reproduces the synthetic
-  Table 1 and figures of that manuscript. Not the FORTRAN or MATLAB originals,
-  and not eigenanalysis of a cyclostationary covariance.
+  Python implementation of the nested cyclostationary EOF operator written
+  in Kim (J. Atmos. Oceanic Technol., submitted), and the scripts that
+  draw Table 1 and Figs. 1–15 of that manuscript. Not the FORTRAN or MATLAB
+  originals, and not eigenanalysis of a cyclostationary covariance.
 keywords:
   - cyclostationary EOF
   - nested CSEOF
